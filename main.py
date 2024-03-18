@@ -2,6 +2,7 @@ from pathlib import Path
 from InquirerPy import inquirer, get_style
 from art import *
 from logger import Settings, print
+from tools import *
 
 
 path = Path(__file__).parent
@@ -67,4 +68,7 @@ if __name__ == '__main__':
         ).execute()
 
         print("File chosen : ", file_chosen)
-        menu_on = False
+        with open(folder / file_chosen, "r") as file:
+            menu_on = False
+            mygraph = Graph.from_file(file)
+            print(mygraph.ranks())
