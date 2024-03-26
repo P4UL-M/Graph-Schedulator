@@ -1,6 +1,5 @@
 from io import TextIOWrapper
-
-# Exception for async automaton in functions that don't work with them
+from tabulate import tabulate
 
 
 class BadFormat(Exception):
@@ -16,10 +15,14 @@ class Task:
     name: str
     predecessors: list[str] = []
 
+    @property
+    def nb_predecessors(self):
+        return len(self.predecessors)
+
     def __init__(self, name: str, weight: int, *predecessors: str):
         self.name = name
         self.weight = weight
-        self.predecessors = predecessors
+        self.predecessors = list(predecessors)
 
     @staticmethod
     def from_line(line: str):
@@ -48,19 +51,40 @@ class Graph:
         self.name = name
 
     @staticmethod
-    def from_file(file: TextIOWrapper):
+    def from_file(file: TextIOWrapper) -> "Graph":
         name = file.name.split("/")[-1].split(".")[0].capitalize()
         graph = Graph(name)
         for line in file:
             graph.states.append(Task.from_line(line))
+        # append first fictive state and add it to all states with no predecessors
+        graph.states.insert(0, Task("start", 0))
+        for state in graph.states:
+            if state.nb_predecessors == 0 and state.name != "start":
+                state.predecessors.append("start")
+        # append last fictive state and add it to all states with no successors
+        no_successors_states = [_state.name for _state in graph.states if len(
+            graph.get_successors(_state)) == 0]
+        graph.states.append(Task("end", 0, *no_successors_states))
         graph.validate()
         return graph
 
-    def __str__(self):
-        return f"Graph {self.name} with {len(self.states)} states.\n" + "\n".join(str(state) for state in self.states)
+    def display(self, style=0) -> None:
+        styles = ["fancy_grid", "rounded_grid", "mixed_grid"]
+        # make tabular representation of the graph
+        tab = []
+        for state in self.states:
+            predecessors = ", ".join(state.predecessors)
+            tab.append([state.name, state.weight,
+                        predecessors, state.nb_predecessors])
+        print(tabulate(tab, headers=[
+              "Name", "Weight", "Predecessors", "Nb predecessors"], tablefmt=styles[style]))
 
-    def validate(self):
+    def validate(self) -> bool:
         # Check if there is negative edges
+        for state in self.states:
+            if state.weight < 0:
+                raise BadFormat(f"Task {state.name} has a negative weight.")
+        # Check if all predecessors exist
         for state in self.states:
             for pred in state.predecessors:
                 if pred not in [state.name for state in self.states]:
@@ -81,10 +105,26 @@ class Graph:
                 raise BadFormat(f"Task {state.name} has a cycle.")
         return True
 
-    def ranks(self):
+    def ranks(self) -> dict[Task, int]:
         ranks = {state: 0 for state in self.states}
         for state in self.states:
             for pred in state.predecessors:
                 ranks[state] = max(
                     ranks[state], ranks[[state for state in self.states if state.name == pred][0]] + 1)
         return ranks
+
+    def matrix(self) -> tuple[tuple[str]]:
+        # make matrix representation of the graph
+        matrix = []
+        for state in self.states:
+            row = ['*' for _ in range(len(self.states))]
+            for i, _state in enumerate(self.states):
+                if state.name in _state.predecessors:
+                    row[i] = state.weight
+                if state in self.get_successors(_state):
+                    row[i] = _state.weight
+            matrix.append(tuple(row))
+        return tuple(matrix)
+
+    def get_successors(self, state: Task):
+        return [_state for _state in self.states if state.name in _state.predecessors]

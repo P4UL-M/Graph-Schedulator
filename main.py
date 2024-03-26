@@ -3,12 +3,15 @@ from InquirerPy import inquirer, get_style
 from art import *
 from logger import Settings, print
 from tools import *
+from tabulate import tabulate
 
+
+styles = ["fancy_grid", "rounded_grid", "mixed_grid"]
 
 path = Path(__file__).parent
 
 if __name__ == '__main__':
-    tprint("Graph Schedulator\n", font="tarty1",
+    tprint("Graph\n Schedulator\n", font="tarty1",
            chr_ignore=True, decoration="block")
     print("By POOOOL")
 
@@ -71,4 +74,9 @@ if __name__ == '__main__':
         with open(folder / file_chosen, "r") as file:
             menu_on = False
             mygraph = Graph.from_file(file)
+            print("Graph created")
+            mygraph.display(1)
+            # tabulate with the matrix header are the states and rows names are the states
+            print(tabulate(mygraph.matrix(), headers=[
+                  state.name for state in mygraph.states], showindex=[state.name for state in mygraph.states], tablefmt="rounded_grid"))
             print(mygraph.ranks())
