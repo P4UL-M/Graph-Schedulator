@@ -1,3 +1,4 @@
+from math import e
 from pathlib import Path
 from InquirerPy import inquirer, get_style
 from art import *
@@ -80,3 +81,22 @@ if __name__ == '__main__':
             print(tabulate(mygraph.matrix(), headers=[
                   state.name for state in mygraph.states], showindex=[state.name for state in mygraph.states], tablefmt="rounded_grid"))
             print(mygraph.ranks())
+            calander = Calendar(mygraph)
+
+            # make a table with the following columns : rank, state, earliest date, latest date
+            ranks = mygraph.ranks()
+            earliest_dates = calander.earliest_date()
+            latest_dates = calander.latest_date()
+            # order the dictionary by ranks
+            ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
+            table = [
+                ["ranks"] + list(ranks.values()),
+                ["states"] + [state.name for state in ranks.keys()],
+                ["weights"] + [state.weight for state in ranks.keys()],
+                ["earliest date"] + [earliest_dates[state]
+                                     for state in ranks.keys()],
+                ["latest date"] + [latest_dates[state]
+                                   for state in ranks.keys()],
+            ]
+            # put headers in first column
+            print(tabulate(table, tablefmt="fancy_grid"))
