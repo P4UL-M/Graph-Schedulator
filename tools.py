@@ -1,6 +1,7 @@
 from io import TextIOWrapper
 from tabulate import tabulate
 from typing import Union
+from logger import print
 
 
 class BadFormat(SystemExit):
@@ -149,7 +150,7 @@ class Graph:
     def get_successors(self, state: Task):
         return [_state for _state in self.states if state.name in _state.predecessors]
 
-    def get_critical_path(self):
+    def get_critical_path(self) -> list[Task]:
         # take the path with the float equal to 0 for each state
         critical_path = []
         float_dates = Calendar(self).float()

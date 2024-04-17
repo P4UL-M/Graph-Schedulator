@@ -5,16 +5,16 @@ from logger import Settings, print
 from tools import *
 from tabulate import tabulate
 
-RED = "\033[1;31m"
-GREEN = "\033[1;32m"
-YELLOW = "\033[1;33m"
-BLUE = "\033[1;34m"
-MAGENTA = "\033[1;35m"
-CYAN = "\033[1;36m"
-WHITE = "\033[1;37m"
-BOLD = "\033[1m"
-UNDERLINE = "\033[4m"
-RESET = "\033[0m"
+RED = "\033[1;31m" if Settings.debug else ""
+GREEN = "\033[1;32m" if Settings.debug else ""
+YELLOW = "\033[1;33m" if Settings.debug else ""
+BLUE = "\033[1;34m" if Settings.debug else ""
+MAGENTA = "\033[1;35m" if Settings.debug else ""
+CYAN = "\033[1;36m" if Settings.debug else ""
+WHITE = "\033[1;37m" if Settings.debug else ""
+BOLD = "\033[1m" if Settings.debug else ""
+UNDERLINE = "\033[4m" if Settings.debug else ""
+RESET = "\033[0m" if Settings.debug else ""
 
 
 styles = ["fancy_grid", "rounded_grid", "mixed_grid"]
@@ -119,8 +119,8 @@ if __name__ == '__main__':
             index = ["rank", "state", "weight", "earliest date", "latest date", "float"]
             # put headers in first column
             print(tabulate(table, tablefmt="fancy_grid", showindex=index))
-            print("Critical path : ", [
-                 (state.name, state.weight) for state in mygraph.get_critical_path()])
+            print("Critical path : ", end=" ")
+            print(*mygraph.get_critical_path(), sep=" -> ")
             print("Critical path weight : ", sum(
                 [state.weight for state in mygraph.get_critical_path()]))
             #! debug for testing
