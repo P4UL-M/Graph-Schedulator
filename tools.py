@@ -153,9 +153,14 @@ class Graph:
         # take the path with the float equal to 0 for each state
         critical_path = []
         float_dates = Calendar(self).float()
-        for state in self.states:
-            if float_dates[state] == 0:
-                critical_path.append(state)
+        start = self.states[0]
+        critical_path.append(start)
+        while start != self.states[-1]:
+            for succ in self.get_successors(start):
+                if float_dates[succ] == 0:
+                    critical_path.append(succ)
+                    start = succ
+                    break
         return critical_path
 
 
@@ -171,8 +176,9 @@ class Calendar:
 
     def earliest_date(self) -> dict[Task, int]:
         ranks = self.graph.ranks()
+        ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))  # ? states iteration must be in ascending order of ranks
         dates = {state: 0 for state in self.graph.states}
-        for state in self.graph.states:
+        for state in ranks.keys():
             for succ in self.graph.get_successors(state):
                 dates[succ] = max(dates[succ], dates[state] + state.weight)
         return dates

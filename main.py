@@ -1,10 +1,20 @@
-from math import e
 from pathlib import Path
-from InquirerPy import inquirer, get_style
+from InquirerPy import inquirer
 from art import *
 from logger import Settings, print
 from tools import *
 from tabulate import tabulate
+
+RED = "\033[1;31m"
+GREEN = "\033[1;32m"
+YELLOW = "\033[1;33m"
+BLUE = "\033[1;34m"
+MAGENTA = "\033[1;35m"
+CYAN = "\033[1;36m"
+WHITE = "\033[1;37m"
+BOLD = "\033[1m"
+UNDERLINE = "\033[4m"
+RESET = "\033[0m"
 
 
 styles = ["fancy_grid", "rounded_grid", "mixed_grid"]
@@ -78,8 +88,13 @@ if __name__ == '__main__':
             print("Graph created")
             mygraph.display(1)
             # tabulate with the matrix header are the states and rows names are the states
-            print(tabulate(mygraph.matrix(), headers=[
-                  state.name for state in mygraph.states], showindex=[state.name for state in mygraph.states], tablefmt="rounded_grid"))
+            table = mygraph.matrix()
+            # convert to list
+            table = list(map(list, table))
+            # put color on numbers
+            for i, row in enumerate(table):
+                table[i] = list(map(lambda x: CYAN + str(x) + RESET if x.__class__ == int else x, row))
+            print(tabulate(table, headers=[RED + BOLD + state.name + RESET for state in mygraph.states], showindex=[RED + BOLD + state.name + RESET for state in mygraph.states], tablefmt="rounded_grid"))
 
             # create a calander object
             calander = Calendar(mygraph)
@@ -92,18 +107,22 @@ if __name__ == '__main__':
             # order the dictionary by ranks
             ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
             table = [
-                ["ranks"] + list(ranks.values()),
-                ["states"] + [state.name for state in ranks.keys()],
-                ["weights"] + [state.weight for state in ranks.keys()],
-                ["earliest date"] + [earliest_dates[state]
-                                     for state in ranks.keys()],
-                ["latest date"] + [latest_dates[state]
-                                   for state in ranks.keys()],
-                ["float"] + [float_dates[state] for state in ranks.keys()],
+                list(ranks.values()),
+                [state.name for state in ranks.keys()],
+                [state.weight for state in ranks.keys()],
+                [earliest_dates[state]
+                 for state in ranks.keys()],
+                [latest_dates[state]
+                 for state in ranks.keys()],
+                [float_dates[state] for state in ranks.keys()],
             ]
+            index = ["rank", "state", "weight", "earliest date", "latest date", "float"]
             # put headers in first column
-            print(tabulate(table, tablefmt="fancy_grid"))
+            print(tabulate(table, tablefmt="fancy_grid", showindex=index))
             print("Critical path : ", [
-                  (state.name, state.weight) for state in mygraph.get_critical_path()])
+                 (state.name, state.weight) for state in mygraph.get_critical_path()])
             print("Critical path weight : ", sum(
                 [state.weight for state in mygraph.get_critical_path()]))
+            #! debug for testing
+            if sum([state.weight for state in mygraph.get_critical_path()]) != earliest_dates[mygraph.states[-1]]:
+                raise Exception("Critical path weight is not equal to the earliest date of the last state")
