@@ -1,7 +1,7 @@
 from io import TextIOWrapper
 from tabulate import tabulate
 from typing import Union
-from logger import print
+from logger import print, Settings
 
 
 class BadFormat(SystemExit):
@@ -84,16 +84,28 @@ class Graph:
         # Check if there is negative edges
         for state in self.states:
             if state.weight < 0:
-                raise BadFormat(f"Task {state.name} has a negative weight.")
+                if Settings.verbose:
+                    print(f"Task {state.name} has a negative weight.")
+                    exit()
+                else:
+                    raise BadFormat(f"Task {state.name} has a negative weight.")
         # Check if all predecessors exist
         for state in self.states:
             for pred in state.predecessors:
                 if pred not in [state.name for state in self.states]:
-                    raise BadFormat(f"Task {state.name} has a predecessor {pred} that doesn't exist in the graph.")
+                    if Settings.verbose:
+                        print(f"Task {state.name} has a predecessor {pred} that doesn't exist in the graph.")
+                        exit()
+                    else:
+                        raise BadFormat(f"Task {state.name} has a predecessor {pred} that doesn't exist in the graph.")
         # Check if there is a cycle
         state = self.has_cycle()
         if state:
-            raise BadFormat(f"Task {state.name} has a cycle.")
+            if Settings.verbose:
+                print(f"Task {state.name} has a cycle.")
+                exit()
+            else:
+                raise BadFormat(f"Task {state.name} has a cycle.")
         return True
 
     def has_cycle(self) -> Union[Task, bool]:

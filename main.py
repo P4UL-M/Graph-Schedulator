@@ -119,6 +119,7 @@ if __name__ == '__main__':
             index = ["rank", "state", "weight", "earliest date", "latest date", "float"]
             # put headers in first column
             print(tabulate(table, tablefmt="fancy_grid", showindex=index))
+            # print the critical path and its weight
             print("Critical path : ", end=" ")
             print(*mygraph.get_critical_path(), sep=" -> ")
             print("Critical path weight : ", sum(
