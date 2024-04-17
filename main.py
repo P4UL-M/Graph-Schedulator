@@ -80,13 +80,15 @@ if __name__ == '__main__':
             # tabulate with the matrix header are the states and rows names are the states
             print(tabulate(mygraph.matrix(), headers=[
                   state.name for state in mygraph.states], showindex=[state.name for state in mygraph.states], tablefmt="rounded_grid"))
-            print(mygraph.ranks())
+
+            # create a calander object
             calander = Calendar(mygraph)
 
             # make a table with the following columns : rank, state, earliest date, latest date
             ranks = mygraph.ranks()
             earliest_dates = calander.earliest_date()
             latest_dates = calander.latest_date()
+            float_dates = calander.float()
             # order the dictionary by ranks
             ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
             table = [
@@ -97,6 +99,11 @@ if __name__ == '__main__':
                                      for state in ranks.keys()],
                 ["latest date"] + [latest_dates[state]
                                    for state in ranks.keys()],
+                ["float"] + [float_dates[state] for state in ranks.keys()],
             ]
             # put headers in first column
             print(tabulate(table, tablefmt="fancy_grid"))
+            print("Critical path : ", [
+                  (state.name, state.weight) for state in mygraph.get_critical_path()])
+            print("Critical path weight : ", sum(
+                [state.weight for state in mygraph.get_critical_path()]))

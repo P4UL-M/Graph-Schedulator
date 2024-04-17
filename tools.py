@@ -1,13 +1,13 @@
-from datetime import date
 from io import TextIOWrapper
 from tabulate import tabulate
+from typing import Union
 
 
-class BadFormat(Exception):
+class BadFormat(SystemExit):
     pass
 
 
-class BadAction(Exception):  # Exception for actions that can't be done on the automaton
+class BadAction(SystemExit):  # Exception for actions that can't be done on the automaton
     pass
 
 
@@ -90,27 +90,48 @@ class Graph:
                 if pred not in [state.name for state in self.states]:
                     raise BadFormat(f"Task {state.name} has a predecessor {pred} that doesn't exist in the graph.")
         # Check if there is a cycle
-        visited: set[Task] = set()
-        stack: list[Task] = []
-        stack.append(self.states[0])
-        while stack:
-            state = stack.pop()
-            if state not in visited:
-                visited.add(state)
-                for pred in state.predecessors:
-                    stack.append(
-                        [state for state in self.states if state.name == pred][0])
-            else:
-                raise BadFormat(f"Task {state.name} has a cycle.")
+        state = self.has_cycle()
+        if state:
+            raise BadFormat(f"Task {state.name} has a cycle.")
         return True
 
-    def ranks(self) -> dict[Task, int]:
-        # calculate the ranks of each state
-        ranks = {state: 0 for state in self.states}
+    def has_cycle(self) -> Union[Task, bool]:
+        # Check if there is a cycle in the graph
+        visited = set()
+        stack = set()
         for state in self.states:
-            for pred in state.predecessors:
-                ranks[state] = max(ranks[state], ranks[[state for state in self.states if state.name == pred][0]] + 1)
+            _state = self._has_cycle(state, visited, stack)
+            if _state:
+                return _state
+        return False
+
+    def _has_cycle(self, state: Task, visited: set[Task], stack: set[Task]) -> Union[Task, bool]:
+        if state in stack:
+            return state
+        if state in visited:
+            return False
+        visited.add(state)
+        stack.add(state)
+        for succ in self.get_successors(state):
+            _succ = self._has_cycle(succ, visited, stack)
+            if _succ:
+                return _succ
+        stack.remove(state)
+        return False
+
+    def ranks(self) -> dict[Task, int]:
+        ranks = {state: 0 for state in self.states}
+        ranks = self._state_rank(self.states[0], 0, ranks)
         return ranks
+
+    def _state_rank(self, state: Task, current_rank: int, current_ranks: dict[Task, int]) -> dict[Task, int]:
+        # print("at state", state, current_rank)
+        if current_ranks[state] < current_rank:
+            current_ranks[state] = current_rank
+        for succ in self.get_successors(state):
+            current_ranks = self._state_rank(succ, current_rank + 1, current_ranks)
+        # print("returning")
+        return current_ranks
 
     def matrix(self) -> tuple[tuple[str]]:
         # make matrix representation of the graph
@@ -127,6 +148,15 @@ class Graph:
 
     def get_successors(self, state: Task):
         return [_state for _state in self.states if state.name in _state.predecessors]
+
+    def get_critical_path(self):
+        # take the path with the float equal to 0 for each state
+        critical_path = []
+        float_dates = Calendar(self).float()
+        for state in self.states:
+            if float_dates[state] == 0:
+                critical_path.append(state)
+        return critical_path
 
 
 class Calendar:
@@ -153,8 +183,18 @@ class Calendar:
         # make a list of states sorted by ranks in descending order
         states = sorted(self.graph.states, key=lambda x: ranks[x], reverse=True)
         dates[states[0]] = self.earliest_date()[states[0]]
-        # for state in states[1:]:
-        #     dates_successors = [dates[succ] for succ in self.graph.get_successors(state)]
-        #     dates[state] = min(dates_successors) - state.weight
-        # TODO: finish this function
+        for state in states[1:]:
+            dates_successors = [dates[succ] for succ in self.graph.get_successors(state)]
+            dates[state] = min(dates_successors) - state.weight
+        return dates
+
+    def float(self) -> dict[Task, int]:
+        # make a list of states sorted by ranks in descending order
+        ranks = self.graph.ranks()
+        states = sorted(self.graph.states, key=lambda x: ranks[x], reverse=True)
+        dates = {state: 0 for state in self.graph.states}
+        latest_dates = self.latest_date()
+        earliest_dates = self.earliest_date()
+        for state in states:
+            dates[state] = latest_dates[state] - earliest_dates[state]
         return dates
