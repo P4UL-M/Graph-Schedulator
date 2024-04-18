@@ -127,3 +127,9 @@ if __name__ == '__main__':
             #! debug for testing
             if sum([state.weight for state in mygraph.get_critical_path()]) != earliest_dates[mygraph.states[-1]]:
                 raise Exception("Critical path weight is not equal to the earliest date of the last state")
+
+            # ask if the user wants to display the graph
+            display = inquirer.confirm(
+                message="Do you want to display the graph ?", raise_keyboard_interrupt=False, mandatory=False).execute()
+            if display:
+                calander.display()

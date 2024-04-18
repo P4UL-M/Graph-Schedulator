@@ -2,6 +2,8 @@ from io import TextIOWrapper
 from tabulate import tabulate
 from typing import Union
 from logger import print, Settings
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 
 class BadFormat(SystemExit):
@@ -164,17 +166,19 @@ class Graph:
 
     def get_critical_path(self) -> list[Task]:
         # take the path with the float equal to 0 for each state
-        critical_path = []
         float_dates = Calendar(self).float()
-        start = self.states[0]
-        critical_path.append(start)
-        while start != self.states[-1]:
-            for succ in self.get_successors(start):
-                if float_dates[succ] == 0:
-                    critical_path.append(succ)
-                    start = succ
-                    break
-        return critical_path
+        ranks = self.ranks()
+        return self._get_critical_path(self.states[0], float_dates, ranks)
+
+    def _get_critical_path(self, state: Task, float_dates: dict[Task, int], ranks: dict[Task, int]) -> Union[list[Task], None]:
+        if state == self.states[-1]:
+            return [state]
+        for succ in self.get_successors(state):
+            if float_dates[succ] == 0 and ranks[succ] == ranks[state] + 1:
+                critical_path = self._get_critical_path(succ, float_dates, ranks)
+                if critical_path:
+                    return [state] + critical_path
+        return None
 
 
 class Calendar:
@@ -183,9 +187,6 @@ class Calendar:
 
     def __init__(self, graph: Graph):
         self.graph = graph
-
-    def display(self, style=0) -> None:
-        self.graph.display(style)
 
     def earliest_date(self) -> dict[Task, int]:
         ranks = self.graph.ranks()
@@ -217,3 +218,68 @@ class Calendar:
         for state in states:
             dates[state] = latest_dates[state] - earliest_dates[state]
         return dates
+
+    def display(self) -> None:
+        # Get earliest and latest dates
+        earliest_dates = self.earliest_date()
+        latest_dates = self.latest_date()
+
+        # Extract task names and their start times
+        tasks = [task for task in earliest_dates]
+        start_times_earliest = [earliest_dates[task] for task in earliest_dates]
+        start_times_latest = [latest_dates[task] for task in latest_dates]
+
+        # Calculate durations of tasks
+        durations = [task.weight for task in earliest_dates]
+
+        # Remove the first and last tasks
+        tasks = tasks[1:-1]
+        start_times_earliest = start_times_earliest[1:-1]
+        start_times_latest = start_times_latest[1:-1]
+        durations = durations[1:-1]
+
+        # end date of each task
+        end_dates = [start + duration for start, duration in zip(start_times_earliest, durations)]
+        last_end_date = max(end_dates)
+
+        # critical path
+        critical_path = self.graph.get_critical_path()
+
+        # Create Gantt chart
+        fig, ax = plt.subplots()
+
+        # Plot earliest date bars (blue)
+        for i, task in enumerate(tasks):
+            # if the task is in the critical path, color it in green
+            if task in critical_path:
+                ax.barh(task.name + ' (Critical)', durations[i], left=start_times_earliest[i], color='lightgreen')
+            else:
+                ax.barh(task.name + ' (Earliest)', durations[i], left=start_times_earliest[i], color='skyblue')
+            # ax.barh(task + ' (Earliest)', durations[i], left=start_times_earliest[i], color='skyblue')
+            ax.barh(task.name + ' (Latest)', durations[i], left=start_times_latest[i], color='salmon')
+
+        # Set labels and title
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Tasks')
+        ax.set_title('Gantt Chart - Earliest and Latest Dates')
+
+        # Adjust layout to fit the legend
+        plt.tight_layout()
+        # Set x-axis to display only integer values
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+        # Adjust the x-axis ticks to show lines only at the end of each earliest and latest date
+        ticks = start_times_earliest
+        ticks += start_times_latest
+        ticks += [last_end_date]
+        # remove duplicates and sort
+        ticks = list(set(ticks))
+        ticks.sort()
+        ax.set_xticks(ticks)
+
+        # set end of x-axis to the last end date
+        ax.set_xlim(0, last_end_date)
+
+        # Show plot
+        plt.grid(True)
+        plt.show()
