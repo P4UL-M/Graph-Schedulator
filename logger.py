@@ -20,11 +20,11 @@ def print(*args, **kwargs):
     # are present in kwargs
     if Settings.debug:
         if Settings.outfile in Settings.endfiles:
-            with open(Settings.path / "outputs" / Settings.outfile, "a") as f:
+            with open(Settings.path / Settings.outfile, "a") as f:
                 sep = kwargs.get("sep", " ")
                 f.write(sep.join(map(str, args)) + "\n")
         else:
-            with open(Settings.path / "outputs" / Settings.outfile, "w+") as f:
+            with open(Settings.path / Settings.outfile, "w+") as f:
                 sep = kwargs.get("sep", " ")
                 f.write(sep.join(map(str, args)) + "\n")
             Settings.endfiles.append(Settings.outfile)

@@ -1,0 +1,3 @@
+Debug mode enabled
+File chosen :  table 1.txt
+Task 4 has a cycle.
