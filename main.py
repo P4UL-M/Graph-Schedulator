@@ -5,18 +5,6 @@ from logger import Settings, print
 from tools import *
 from tabulate import tabulate
 
-RED = "\033[1;31m" if Settings.debug else ""
-GREEN = "\033[1;32m" if Settings.debug else ""
-YELLOW = "\033[1;33m" if Settings.debug else ""
-BLUE = "\033[1;34m" if Settings.debug else ""
-MAGENTA = "\033[1;35m" if Settings.debug else ""
-CYAN = "\033[1;36m" if Settings.debug else ""
-WHITE = "\033[1;37m" if Settings.debug else ""
-BOLD = "\033[1m" if Settings.debug else ""
-UNDERLINE = "\033[4m" if Settings.debug else ""
-RESET = "\033[0m" if Settings.debug else ""
-
-
 styles = ["fancy_grid", "rounded_grid", "mixed_grid"]
 
 path = Path(__file__).parent
@@ -66,6 +54,18 @@ if __name__ == '__main__':
         if "Verbose mode" in promt:
             Settings.verbose = True
 
+    # Colors
+    RED = "\033[1;31m" if not Settings.debug else ""
+    GREEN = "\033[1;32m" if not Settings.debug else ""
+    YELLOW = "\033[1;33m" if not Settings.debug else ""
+    BLUE = "\033[1;34m" if not Settings.debug else ""
+    MAGENTA = "\033[1;35m" if not Settings.debug else ""
+    CYAN = "\033[1;36m" if not Settings.debug else ""
+    WHITE = "\033[1;37m" if not Settings.debug else ""
+    BOLD = "\033[1m" if not Settings.debug else ""
+    UNDERLINE = "\033[4m" if not Settings.debug else ""
+    RESET = "\033[0m" if not Settings.debug else ""
+
     # Menu
     menu_on = True
     while menu_on:  # Menu loop
@@ -83,7 +83,6 @@ if __name__ == '__main__':
 
         print("File chosen : ", file_chosen)
         with open(folder / file_chosen, "r") as file:
-            menu_on = False
             mygraph = Graph.from_file(file)
             print("Graph created")
             mygraph.display(1)
@@ -141,3 +140,10 @@ if __name__ == '__main__':
                 message="Do you want to display the graph ?", raise_keyboard_interrupt=False, mandatory=False).execute()
             if display:
                 calander.display(compute)
+
+        # ask if the user wants to continue
+        continue_ = inquirer.confirm(
+            message="Do you want to continue ?", raise_keyboard_interrupt=False, mandatory=False).execute()
+        if not continue_:
+            menu_on = False
+            print("Goodbye")
