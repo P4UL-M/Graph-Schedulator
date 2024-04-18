@@ -140,4 +140,4 @@ if __name__ == '__main__':
             display = inquirer.confirm(
                 message="Do you want to display the graph ?", raise_keyboard_interrupt=False, mandatory=False).execute()
             if display:
-                calander.display()
+                calander.display(compute)

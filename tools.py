@@ -1,10 +1,11 @@
 from io import TextIOWrapper
 from logging import critical
 from tabulate import tabulate
-from typing import Generator, Union
+from typing import Union
 from logger import print, Settings
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import matplotlib.animation as animation
 
 
 class BadFormat(SystemExit):
@@ -243,7 +244,7 @@ class Calendar:
             dates[state] = latest_dates[state] - earliest_dates[state]
         return dates
 
-    def display(self) -> None:
+    def display(self, all_critical_paths_display=False) -> None:
         # Get earliest and latest dates
         earliest_dates = self.earliest_date()
         latest_dates = self.latest_date()
@@ -304,6 +305,28 @@ class Calendar:
         # set end of x-axis to the last end date
         ax.set_xlim(0, last_end_date)
 
-        # Show plot
+        # make animation of the critical path if the user wants to
+        if all_critical_paths_display:
+            paths = self.graph.get_critial_paths()
+            # export to list
+            paths = list(paths)
+
+            def animate(frame, paths: list[list[Task]], ax):
+                # choose the path to display in fonction of the frame
+                current_path = paths[frame % len(paths)]
+                # associate each task to its bar
+                bars = ax.patches
+                # remove the latest date bars
+                bars = bars[::2]
+                # change the color of each bar in earliest date to skyblue
+                for bar, task in zip(bars, tasks):
+                    if task in current_path:
+                        bar.set_facecolor('lightgreen')
+                    else:
+                        bar.set_facecolor('skyblue')
+
+            # add the animation to the plot
+            ani = animation.FuncAnimation(fig, animate, fargs=(paths, ax), interval=2000, cache_frame_data=False)
+
         plt.grid(True)
         plt.show()
