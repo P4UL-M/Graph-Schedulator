@@ -1,6 +1,7 @@
 from io import TextIOWrapper
+from logging import critical
 from tabulate import tabulate
-from typing import Union
+from typing import Generator, Union
 from logger import print, Settings
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -174,11 +175,34 @@ class Graph:
         if state == self.states[-1]:
             return [state]
         for succ in self.get_successors(state):
-            if float_dates[succ] == 0 and ranks[succ] == ranks[state] + 1:
+            if float_dates[succ] == 0 and ranks[succ] == ranks[state] + 1:  # ? check if the float is 0 and the rank is the next one in the graph
                 critical_path = self._get_critical_path(succ, float_dates, ranks)
                 if critical_path:
                     return [state] + critical_path
         return None
+
+    def get_critial_paths(self):
+        # take the path with the float equal to 0 for each state
+        float_dates = Calendar(self).float()
+        earliest_dates = Calendar(self).earliest_date()
+        end_dates = [earliest_date + state.weight for state, earliest_date in earliest_dates.items()]
+        end_date = max(end_dates)
+        ranks = self.ranks()
+        for path in self._get_critial_paths(self.states[0], float_dates, ranks):
+            # ? check if the path has the same weight as the end date since the rank jump security have been removed
+            if sum([state.weight for state in path]) == end_date:
+                yield path
+
+    def _get_critial_paths(self, state: Task, float_dates: dict[Task, int], ranks: dict[Task, int]):
+        if state == self.states[-1]:
+            yield [state]
+        for succ in self.get_successors(state):
+            # ? useless to check the path if the float is not 0
+            if float_dates[succ] == 0:
+                for critical_path in self._get_critial_paths(succ, float_dates, ranks):
+                    # ? return the path only if we have a complete path
+                    if critical_path:
+                        yield [state] + critical_path
 
 
 class Calendar:
