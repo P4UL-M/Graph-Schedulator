@@ -55,6 +55,7 @@ class Graph:
 
     def __init__(self, name):
         self.name = name
+        self.states = []
 
     @staticmethod
     def from_file(file: TextIOWrapper) -> "Graph":
@@ -225,7 +226,7 @@ class Calendar:
     def latest_date(self) -> dict[Task, int]:
         ranks = self.graph.ranks()
         dates = {state: 0 for state in self.graph.states}
-        # make a list of states sorted by ranks in descending order
+        # ? List of states must be sorted by ranks in descending order
         states = sorted(self.graph.states, key=lambda x: ranks[x], reverse=True)
         dates[states[0]] = self.earliest_date()[states[0]]
         for state in states[1:]:
@@ -234,14 +235,19 @@ class Calendar:
         return dates
 
     def float(self) -> dict[Task, int]:
-        # make a list of states sorted by ranks in descending order
-        ranks = self.graph.ranks()
-        states = sorted(self.graph.states, key=lambda x: ranks[x], reverse=True)
         dates = {state: 0 for state in self.graph.states}
         latest_dates = self.latest_date()
         earliest_dates = self.earliest_date()
-        for state in states:
+        for state in self.graph.states:
             dates[state] = latest_dates[state] - earliest_dates[state]
+        return dates
+
+    def free_float(self) -> dict[Task, int]:
+        # float but without affecting the earliest date of the successors
+        dates = {state: 0 for state in self.graph.states}
+        earliest_dates = self.earliest_date()
+        for state in self.graph.states:
+            dates[state] = min([earliest_dates[succ] - (earliest_dates[state] + state.weight) for succ in self.graph.get_successors(state)] or [0])
         return dates
 
     def display(self, all_critical_paths_display=False) -> None:

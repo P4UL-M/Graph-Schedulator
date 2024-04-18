@@ -103,6 +103,7 @@ if __name__ == '__main__':
             earliest_dates = calander.earliest_date()
             latest_dates = calander.latest_date()
             float_dates = calander.float()
+            free_float_dates = calander.free_float()
             # order the dictionary by ranks
             ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
             table = [
@@ -114,8 +115,9 @@ if __name__ == '__main__':
                 [latest_dates[state]
                  for state in ranks.keys()],
                 [float_dates[state] for state in ranks.keys()],
+                [free_float_dates[state] for state in ranks.keys()],
             ]
-            index = ["rank", "state", "weight", "earliest date", "latest date", "float"]
+            index = ["rank", "state", "weight", "earliest date", "latest date", "float", "free float"]
             # put headers in first column
             print(tabulate(table, tablefmt="fancy_grid", showindex=index))
             # print the critical path and its weight
