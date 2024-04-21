@@ -8,11 +8,11 @@ from matplotlib.ticker import MaxNLocator
 import matplotlib.animation as animation
 
 
-class BadFormat(SystemExit):
+class BadFormat(Exception):
     pass
 
 
-class BadAction(SystemExit):  # Exception for actions that can't be done on the automaton
+class BadAction(Exception):  # Exception for actions that can't be done on the automaton
     pass
 
 
@@ -168,20 +168,8 @@ class Graph:
         return [_state for _state in self.states if state.name in _state.predecessors]
 
     def get_critical_path(self) -> list[Task]:
-        # take the path with the float equal to 0 for each state
-        float_dates = Calendar(self).float()
-        ranks = self.ranks()
-        return self._get_critical_path(self.states[0], float_dates, ranks)
-
-    def _get_critical_path(self, state: Task, float_dates: dict[Task, int], ranks: dict[Task, int]) -> Union[list[Task], None]:
-        if state == self.states[-1]:
-            return [state]
-        for succ in self.get_successors(state):
-            if float_dates[succ] == 0 and ranks[succ] == ranks[state] + 1:  # ? check if the float is 0 and the rank is the next one in the graph
-                critical_path = self._get_critical_path(succ, float_dates, ranks)
-                if critical_path:
-                    return [state] + critical_path
-        return None
+        gen = self.get_critial_paths()
+        return next(gen)
 
     def get_critial_paths(self):
         # take the path with the float equal to 0 for each state

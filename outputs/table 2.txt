@@ -1,4 +1,3 @@
-Debug mode enabled
 File chosen :  table 2.txt
 Graph created
 ╭────────┬──────────┬────────────────┬───────────────────╮
@@ -79,8 +78,11 @@ Graph created
 │ latest date   │ 0 │ 3 │ 0 │ 19 │ 5 │ 23 │ 7 │ 13 │ 12 │ 32 │ 24 │ 17 │ 26 │ 28 │ 33 │
 ├───────────────┼───┼───┼───┼────┼───┼────┼───┼────┼────┼────┼────┼────┼────┼────┼────┤
 │ float         │ 0 │ 3 │ 0 │ 17 │ 0 │ 17 │ 0 │  6 │  0 │  6 │  7 │  0 │  0 │  0 │  0 │
+├───────────────┼───┼───┼───┼────┼───┼────┼───┼────┼────┼────┼────┼────┼────┼────┼────┤
+│ free float    │ 0 │ 0 │ 0 │  0 │ 0 │ 10 │ 0 │  0 │  0 │  6 │  7 │  0 │  0 │  0 │  0 │
 ╘═══════════════╧═══╧═══╧═══╧════╧═══╧════╧═══╧════╧════╧════╧════╧════╧════╧════╧════╛
-Critical path : 
-Task 0 -> Task 2 -> Task 6 -> Task 7 -> Task 8 -> Task 9 -> Task 10 -> Task 12 -> Task 14
+Critical path :  Task 0 -> Task 2 -> Task 6 -> Task 7 -> Task 8 -> Task 9 -> Task 10 -> Task 12 -> Task 14
 Critical path weight :  33
-Goodbye
+All Critical paths :
+ - Task 0 -> Task 2 -> Task 6 -> Task 7 -> Task 8 -> Task 9 -> Task 10 -> Task 12 -> Task 14
+Goodbye !

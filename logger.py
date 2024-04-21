@@ -22,11 +22,13 @@ def print(*args, **kwargs):
         if Settings.outfile in Settings.endfiles:
             with open(Settings.path / Settings.outfile, "a") as f:
                 sep = kwargs.get("sep", " ")
-                f.write(sep.join(map(str, args)) + "\n")
+                end = kwargs.get("end", "\n")
+                f.write(sep.join(map(str, args)) + end)
         else:
             with open(Settings.path / Settings.outfile, "w+") as f:
                 sep = kwargs.get("sep", " ")
-                f.write(sep.join(map(str, args)) + "\n")
+                end = kwargs.get("end", "\n")
+                f.write(sep.join(map(str, args)) + end)
             Settings.endfiles.append(Settings.outfile)
         return __builtin__.print(*args, **kwargs)
     else:

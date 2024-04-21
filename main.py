@@ -12,7 +12,7 @@ path = Path(__file__).parent
 if __name__ == '__main__':
     tprint("Graph\n Schedulator\n", font="tarty1",
            chr_ignore=True, decoration="block")
-    print("By POOOOL")
+    print("By Paul Mairesse, Axel Loones, Louis Le Meilleur & Joseph Benard")
 
     tprint("Settings", chr_ignore=True)
     promt = inquirer.checkbox(
@@ -25,6 +25,8 @@ if __name__ == '__main__':
     ).execute()
     if promt:
         if "Debug mode" in promt:
+            folder = Path(path / "outputs")
+            Settings.path = folder
             # enter path to debug file
             filepath = inquirer.filepath(
                 message="Enter the path to the debug file (pass if you want to create a new one)",
@@ -35,7 +37,6 @@ if __name__ == '__main__':
                 default=str(path / "outputs"),
             ).execute()
             if filepath == None:
-                folder = Path(path / "outputs")
                 new_file = "debug.txt"
                 confirm_promt = inquirer.confirm(message="Do you want to the default file at the location : " + str(
                     folder / new_file), raise_keyboard_interrupt=False, mandatory=False).execute()
@@ -48,7 +49,7 @@ if __name__ == '__main__':
                     print("Debug mode disabled")
                     Settings.debug = False
             else:
-                Settings.outfile = Path(filepath).relative_to(path)
+                Settings.outfile = Path(filepath).relative_to(folder)
                 Settings.debug = True
                 print("Debug mode enabled")
         if "Verbose mode" in promt:
