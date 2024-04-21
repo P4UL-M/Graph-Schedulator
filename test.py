@@ -1,3 +1,4 @@
+from time import time
 from pathlib import Path
 from InquirerPy import inquirer
 from art import *
@@ -96,3 +97,45 @@ if __name__ == '__main__':
                 print(*critical, sep=" -> ")
 
             print("Goodbye !")
+
+    # test execution times of fast critical path vs critical path
+
+    times = {}
+    times_fast = {}
+
+    Settings.debug = False
+
+    for file in files_path:
+        current_times = []
+        current_times_fast = []
+
+        with open(input_folder / file, "r") as f:
+            try:
+                mygraph = Graph.from_file(f)
+            except BadFormat as e:
+                continue
+
+            for i in range(100):
+
+                start = time()
+                mygraph.get_critical_path()
+                current_times.append(time() - start)
+
+                start = time()
+                mygraph.get_fast_critical_path()
+                current_times_fast.append(time() - start)
+
+        times[file.name] = sum(current_times) / len(current_times)
+        times_fast[file.name] = sum(current_times_fast) / len(current_times_fast)
+
+    print(UNDERLINE + RED + "Execution times :" + RESET)
+    table = [
+        [
+            file.name,
+            round(times.get(file.name, 1), 5),
+            round(times_fast.get(file.name, 1), 5),
+            ("+ " + str(round(((times.get(file.name, 1) / times_fast.get(file.name, 1)) - 1) * 100, 1)))
+        ]
+        for file in files_path
+    ]
+    print(tabulate(table, headers=["File", "Critical path", "Fast critical path", "ratio"], tablefmt="fancy_grid"))
