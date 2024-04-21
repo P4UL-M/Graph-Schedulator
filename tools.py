@@ -171,6 +171,20 @@ class Graph:
         gen = self.get_critial_paths()
         return next(gen)
 
+    def get_fast_critical_path(self) -> list[Task]:
+        float_dates = Calendar(self).float()
+        ranks = self.ranks()
+        return self._get_fast_critial_paths(self.states[0], float_dates, ranks)
+
+    def _get_fast_critial_paths(self, state: Task, float_dates: dict[Task, int], ranks: dict[Task, int]):
+        if state == self.states[-1]:
+            return [state]
+        for succ in sorted(self.get_successors(state), key=lambda x: ranks[x]):  # ? sort the successors by rank so we doesn't skip a state with a lower rank in our successors
+            if float_dates[succ] == 0:
+                critical_path = self._get_fast_critial_paths(succ, float_dates, ranks)
+                if critical_path:
+                    return [state] + critical_path
+
     def get_critial_paths(self):
         # take the path with the float equal to 0 for each state
         float_dates = Calendar(self).float()
