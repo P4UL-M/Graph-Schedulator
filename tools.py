@@ -96,6 +96,8 @@ class Graph:
                     exit()
                 else:
                     raise BadFormat(f"Task {state.name} has a negative weight.")
+        if Settings.verbose:
+            print("Graph doesn't have negative edges.")
         # Check if all predecessors exist
         for state in self.states:
             for pred in state.predecessors:
@@ -105,6 +107,8 @@ class Graph:
                         exit()
                     else:
                         raise BadFormat(f"Task {state.name} has a predecessor {pred} that doesn't exist in the graph.")
+        if Settings.verbose:
+            print("All predecessors exist.")
         # Check if there is a cycle
         state = self.has_cycle()
         if state:
@@ -119,6 +123,8 @@ class Graph:
         # Check if there is a cycle in the graph
         visited = set()
         stack = set()
+        if Settings.verbose:
+            print("Checking for cycles in the graph")
         for state in self.states:
             _state = self._has_cycle(state, visited, stack)
             if _state:
@@ -126,6 +132,8 @@ class Graph:
         return False
 
     def _has_cycle(self, state: Task, visited: set[Task], stack: set[Task]) -> Union[Task, bool]:
+        if Settings.verbose:
+            print(f"Checking {state.name}, stack={stack}, visited={visited}")
         if state in stack:
             return state
         if state in visited:
@@ -141,16 +149,18 @@ class Graph:
 
     def ranks(self) -> dict[Task, int]:
         ranks = {state: 0 for state in self.states}
+        if Settings.verbose:
+            print("Computing ranks")
         ranks = self._state_rank(self.states[0], 0, ranks)
         return ranks
 
     def _state_rank(self, state: Task, current_rank: int, current_ranks: dict[Task, int]) -> dict[Task, int]:
-        # print("at state", state, current_rank)
+        if Settings.verbose:
+            print(f"Checking {state.name} with current rank {current_rank}")
         if current_ranks[state] < current_rank:
             current_ranks[state] = current_rank
         for succ in self.get_successors(state):
             current_ranks = self._state_rank(succ, current_rank + 1, current_ranks)
-        # print("returning")
         return current_ranks
 
     def matrix(self) -> tuple[tuple[str]]:
@@ -240,8 +250,14 @@ class Calendar:
         ranks = self.graph.ranks()
         ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))  # ? states iteration must be in ascending order of ranks
         dates = {state: 0 for state in self.graph.states}
+        if Settings.verbose:
+            print("Computing earliest dates")
         for state in ranks.keys():
+            if Settings.verbose:
+                print(f"Checking {state.name}")
             for succ in self.graph.get_successors(state):
+                if Settings.verbose:
+                    print(f"Checking constraint for {state.name} -> {succ.name}")
                 dates[succ] = max(dates[succ], dates[state] + state.weight)
         return dates
 
@@ -251,17 +267,25 @@ class Calendar:
         # ? List of states must be sorted by ranks in descending order
         states = sorted(self.graph.states, key=lambda x: ranks[x], reverse=True)
         dates[states[0]] = self.earliest_date()[states[0]]
+        if Settings.verbose:
+            print("Computing latest dates")
         for state in states[1:]:
             dates_successors = [dates[succ] for succ in self.graph.get_successors(state)]
             dates[state] = min(dates_successors) - state.weight
+            if Settings.verbose:
+                print(f"Checking {state.name} with dates {dates_successors} and new date {dates[state]}")
         return dates
 
     def float(self) -> dict[Task, int]:
         dates = {state: 0 for state in self.graph.states}
         latest_dates = self.latest_date()
         earliest_dates = self.earliest_date()
+        if Settings.verbose:
+            print("Computing float")
         for state in self.graph.states:
             dates[state] = latest_dates[state] - earliest_dates[state]
+            if Settings.verbose:
+                print(f"Checking {state.name} with earliest date {earliest_dates[state]} and latest date {latest_dates[state]}")
         return dates
 
     def free_float(self) -> dict[Task, int]:
@@ -305,7 +329,7 @@ class Calendar:
         for i, task in enumerate(tasks):
             # if the task is in the critical path, color it in green
             if task in critical_path:
-                ax.barh(task.name + ' (Critical)', durations[i], left=start_times_earliest[i], color='lightgreen')
+                ax.barh(task.name + ' (Earliest)', durations[i], left=start_times_earliest[i], color='lightgreen')
             else:
                 ax.barh(task.name + ' (Earliest)', durations[i], left=start_times_earliest[i], color='skyblue')
             # ax.barh(task + ' (Earliest)', durations[i], left=start_times_earliest[i], color='skyblue')
