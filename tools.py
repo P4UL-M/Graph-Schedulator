@@ -213,17 +213,18 @@ class Graph:
     def display_graph(self):
         # display the graph using graphviz
         # color the critical path in red
-        critical_path = self.get_critical_path()
+        critical_path = [*self.get_critial_paths()]
         graph = gv.Digraph(self.name)
         for state in self.states:
-            if state in critical_path:
+            if any([state in path for path in critical_path]):
                 graph.node(state.name, color='red')
             else:
                 graph.node(state.name)
         for state in self.states:
             for succ in self.get_successors(state):
                 # check if the edge is in the critical path
-                is_critical = state in critical_path and succ in critical_path and critical_path.index(state) == critical_path.index(succ) - 1
+                # for one path the condition is state in critical_path and succ in critical_path and critical_path.index(state) == critical_path.index(succ) - 1
+                is_critical = any([state in path and succ in path and path.index(state) == path.index(succ) - 1 for path in critical_path])
                 graph.edge(state.name, succ.name, label=str(state.weight), color='red' if is_critical else 'black')
         graph.view(cleanup=True)
 
