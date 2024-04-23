@@ -171,8 +171,6 @@ class Graph:
             for i, _state in enumerate(self.states):
                 if state.name in _state.predecessors:
                     row[i] = state.weight
-                # if state in self.get_successors(_state):
-                #     row[i] = _state.weight
             matrix.append(tuple(row))
         return tuple(matrix)
 
