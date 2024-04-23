@@ -138,15 +138,22 @@ if __name__ == '__main__':
                     print(" -", end=" ")
                     print(*critical, sep=" -> ")
 
-            # ask if the user wants to display the graph
+            # ask if the user wants to display the calendar
             display = inquirer.confirm(
-                message="Do you want to display the graph ?", raise_keyboard_interrupt=False, mandatory=False).execute()
+                message="Do you want to display the Calendar ?", raise_keyboard_interrupt=False, mandatory=False).execute()
             if display:
                 calander.display(compute)
+            # ask if the user wants to display the graph
+            display = inquirer.confirm(
+                message="Do you want to display the Graph ?", raise_keyboard_interrupt=False, mandatory=False).execute()
+            if display:
+                mygraph.display_graph()
 
         # ask if the user wants to continue
         continue_ = inquirer.confirm(
             message="Do you want to continue ?", raise_keyboard_interrupt=False, mandatory=False).execute()
         if not continue_:
             menu_on = False
+            # clean up .gv.pdf files
+            clean_up(path)
             print("Goodbye")

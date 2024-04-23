@@ -1,11 +1,13 @@
 from io import TextIOWrapper
-from logging import critical
+from pathlib import Path
 from tabulate import tabulate
 from typing import Union
 from logger import print, Settings
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import matplotlib.animation as animation
+import graphviz as gv
+import os
 
 
 class BadFormat(Exception):
@@ -208,6 +210,23 @@ class Graph:
                     if critical_path:
                         yield [state] + critical_path
 
+    def display_graph(self):
+        # display the graph using graphviz
+        # color the critical path in red
+        critical_path = self.get_critical_path()
+        graph = gv.Digraph(self.name)
+        for state in self.states:
+            if state in critical_path:
+                graph.node(state.name, color='red')
+            else:
+                graph.node(state.name)
+        for state in self.states:
+            for succ in self.get_successors(state):
+                # check if the edge is in the critical path
+                is_critical = state in critical_path and succ in critical_path and critical_path.index(state) == critical_path.index(succ) - 1
+                graph.edge(state.name, succ.name, label=str(state.weight), color='red' if is_critical else 'black')
+        graph.view(cleanup=True)
+
 
 class Calendar:
 
@@ -338,3 +357,9 @@ class Calendar:
 
         plt.grid(True)
         plt.show()
+
+
+def clean_up(path: Path):
+    # remove the graph file
+    for file in path.rglob("*.gv.pdf"):
+        os.remove(file)
